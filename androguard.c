@@ -51,6 +51,7 @@ struct permissions {
 define_function(certificate_subject_lookup)
 {
   YR_OBJECT* obj = parent();
+  YR_SCAN_CONTEXT* context = scan_context();
   char *value = NULL;
   uint64_t result = 0;
   json_t *val;
@@ -59,7 +60,7 @@ define_function(certificate_subject_lookup)
   if (val) {
     value = (char *)json_string_value(val);
     if (value) {
-      if (yr_re_match(regexp_argument(1), value) > 0) {
+      if (yr_re_match(context, regexp_argument(1), value) > 0) {
         result = 1;
       }
     }
@@ -87,6 +88,7 @@ void remove_colon(const char* input, char* output) {
 define_function(certificate_not_before_lookup_regex)
 {
   YR_OBJECT* obj = parent();
+  YR_SCAN_CONTEXT* context = scan_context();
   char *value = NULL;
   uint64_t result = 0;
   json_t *val;
@@ -97,7 +99,7 @@ define_function(certificate_not_before_lookup_regex)
   }
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
@@ -117,7 +119,7 @@ define_function(certificate_not_before_lookup_string)
   val = json_object_get(obj->data, "not_before");
 
   if (val != NULL) {
-    value = (char *)json_string_value(val);    
+    value = (char *)json_string_value(val);
   }
 
   if (value != NULL) {
@@ -135,6 +137,7 @@ define_function(certificate_not_before_lookup_string)
 define_function(certificate_not_after_lookup_regex)
 {
   YR_OBJECT* obj = parent();
+  YR_SCAN_CONTEXT* context = scan_context();
   char *value = NULL;
   uint64_t result = 0;
   json_t *val;
@@ -145,7 +148,7 @@ define_function(certificate_not_after_lookup_regex)
   }
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
@@ -165,7 +168,7 @@ define_function(certificate_not_after_lookup_string)
   val = json_object_get(obj->data, "not_after");
 
   if (val != NULL) {
-    value = (char *)json_string_value(val);    
+    value = (char *)json_string_value(val);
   }
   if (value != NULL) {
     if (strcasecmp(string_argument(1), value) == 0) {
@@ -202,7 +205,7 @@ define_function(certificate_sha1_lookup)
         result = 1;
       }
     }
-    
+
   }
   free(cert_str);
 
@@ -215,6 +218,7 @@ define_function(certificate_sha1_lookup)
 define_function(certificate_issuer_lookup)
 {
   YR_OBJECT* obj = parent();
+  YR_SCAN_CONTEXT* context = scan_context();
   char *value = NULL;
   uint64_t result = 0;
   json_t *val;
@@ -226,7 +230,7 @@ define_function(certificate_issuer_lookup)
   }
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
@@ -240,15 +244,16 @@ define_function(certificate_issuer_lookup)
 define_function(main_activity_lookup)
 {
   YR_OBJECT* obj = get_object(module(), "main_activity");
+  YR_SCAN_CONTEXT* context = scan_context();
   char* value = obj->data;
   uint64_t result = 0;
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
- 
+
   return_integer(result);
 }
 
@@ -258,11 +263,12 @@ define_function(main_activity_lookup)
 define_function(permission_lookup)
 {
   YR_OBJECT* obj = get_object(module(), "permission");
+  YR_SCAN_CONTEXT* context = scan_context();
   struct permissions *a;
 
   a = obj->data;
   if (a == NULL) { return_integer(0); }
-  
+
   json_t* list_perms = (json_t*) a->permissions;
   json_t* list_new_perms = (json_t*) a->new_permissions;
 
@@ -272,7 +278,7 @@ define_function(permission_lookup)
 
   json_array_foreach(list_perms, index, value)
   {
-    if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+    if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
     {
       result = 1;
       break;
@@ -282,7 +288,7 @@ define_function(permission_lookup)
   if (!result) {
     json_array_foreach(list_new_perms, index, value)
     {
-      if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+      if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
       {
         result = 1;
         break;
@@ -298,6 +304,7 @@ define_function(permission_lookup)
 define_function(activity_lookup_regex)
 {
   YR_OBJECT* activity_obj = get_object(module(), "activity");
+  YR_SCAN_CONTEXT* context = scan_context();
   json_t* list = (json_t*) activity_obj->data;
 
   uint64_t result = 0;
@@ -306,7 +313,7 @@ define_function(activity_lookup_regex)
 
   json_array_foreach(list, index, value)
   {
-    if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+    if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
     {
       result = 1;
       break;
@@ -344,6 +351,7 @@ define_function(activity_lookup_string)
 define_function(service_lookup_regex)
 {
   YR_OBJECT* service_obj = get_object(module(), "service");
+  YR_SCAN_CONTEXT* context = scan_context();
   json_t* list = (json_t*) service_obj->data;
 
   uint64_t result = 0;
@@ -352,7 +360,7 @@ define_function(service_lookup_regex)
 
   json_array_foreach(list, index, value)
   {
-    if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+    if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
     {
       result = 1;
       break;
@@ -390,6 +398,7 @@ define_function(service_lookup_string)
 define_function(filter_lookup_regex)
 {
   YR_OBJECT* filter_obj = get_object(module(), "filter");
+  YR_SCAN_CONTEXT* context = scan_context();
   json_t* list = (json_t*) filter_obj->data;
 
   uint64_t result = 0;
@@ -398,7 +407,7 @@ define_function(filter_lookup_regex)
 
   json_array_foreach(list, index, value)
   {
-    if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+    if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
     {
       result = 1;
       break;
@@ -436,6 +445,7 @@ define_function(filter_lookup_string)
 define_function(receiver_lookup_regex)
 {
   YR_OBJECT* receiver_obj = get_object(module(), "receiver");
+  YR_SCAN_CONTEXT* context = scan_context();
   json_t* list = (json_t*) receiver_obj->data;
 
   uint64_t result = 0;
@@ -444,7 +454,7 @@ define_function(receiver_lookup_regex)
 
   json_array_foreach(list, index, value)
   {
-    if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+    if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
     {
       result = 1;
       break;
@@ -482,15 +492,16 @@ define_function(receiver_lookup_string)
 define_function(displayed_version_lookup_regex)
 {
   YR_OBJECT* obj = get_object(module(), "displayed_version");
+  YR_SCAN_CONTEXT* context = scan_context();
   char* value = obj->data;
   uint64_t result = 0;
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
- 
+
   return_integer(result);
 }
 
@@ -508,7 +519,7 @@ define_function(displayed_version_lookup_string)
       result = 1;
     }
   }
- 
+
   return_integer(result);
 }
 
@@ -519,6 +530,7 @@ define_function(displayed_version_lookup_string)
 define_function(url_lookup_regex)
 {
   YR_OBJECT* obj = get_object(module(), "url");
+  YR_SCAN_CONTEXT* context = scan_context();
   json_t* list = (json_t*) obj->data;
 
   uint64_t result = 0;
@@ -527,7 +539,7 @@ define_function(url_lookup_regex)
 
   json_array_foreach(list, index, value)
   {
-    if (yr_re_match(regexp_argument(1), json_string_value(value)) > 0)
+    if (yr_re_match(context, regexp_argument(1), json_string_value(value)) > 0)
     {
       result = 1;
       break;
@@ -565,11 +577,12 @@ define_function(url_lookup_string)
 define_function(appname_lookup_regex)
 {
   YR_OBJECT* obj = get_object(module(), "app_name");
+  YR_SCAN_CONTEXT* context = scan_context();
   char* value = obj->data;
   uint64_t result = 0;
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
@@ -601,11 +614,12 @@ define_function(appname_lookup_string)
 define_function(package_name_lookup_regex)
 {
   YR_OBJECT* package_name_obj = get_object(module(), "package_name");
+  YR_SCAN_CONTEXT* context = scan_context();
   char* value = package_name_obj->data;
   uint64_t result = 0;
 
   if (value) {
-    if (yr_re_match(regexp_argument(1), value) > 0) {
+    if (yr_re_match(context, regexp_argument(1), value) > 0) {
       result = 1;
     }
   }
@@ -644,7 +658,7 @@ begin_declarations;
     declare_function("not_before", "r", "i", certificate_not_before_lookup_regex);
     declare_function("not_before", "s", "i", certificate_not_before_lookup_string);
   end_struct("certificate");
-  
+
   declare_integer("min_sdk");
   declare_integer("max_sdk");
   declare_integer("target_sdk");
@@ -673,8 +687,8 @@ begin_declarations;
   declare_function("service", "r", "i", service_lookup_regex);
   declare_function("service", "s", "i", service_lookup_string);
 
-  declare_function("filter", "r", "i", filter_lookup_regex);  
-  declare_function("filter", "s", "i", filter_lookup_string);  
+  declare_function("filter", "r", "i", filter_lookup_regex);
+  declare_function("filter", "s", "i", filter_lookup_string);
 
   declare_function("package_name", "r", "i", package_name_lookup_regex);
   declare_function("package_name", "s", "i", package_name_lookup_string);
@@ -803,7 +817,7 @@ int module_load(
 
   /* Extract displayed_version */
   displayed_version_obj->data = (char *)json_string_value(
-                                    json_object_get(json, "displayed_version"));  
+                                    json_object_get(json, "displayed_version"));
 
   /* Extract package_name */
   package_name_obj->data = (char *)json_string_value(
@@ -811,9 +825,9 @@ int module_load(
 
   /* Permissions */
   permissions_struct = malloc(sizeof(struct permissions));
-  permissions_struct->permissions = (void *)json_object_get(json, 
+  permissions_struct->permissions = (void *)json_object_get(json,
                                                             "permissions");
-  permissions_struct->new_permissions = (void *)json_object_get(json, 
+  permissions_struct->new_permissions = (void *)json_object_get(json,
                                                             "new_permissions");
   permission_obj->data = permissions_struct;
 
